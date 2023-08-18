@@ -1,0 +1,210 @@
+﻿using System;
+using System.Data;
+using System.Data.SqlClient;
+
+namespace ConAppAssignmnet_6
+{
+    internal class Program
+    {
+
+
+        static SqlCommand cmd;
+        static SqlDataReader reader;
+        static string conStr = "server=DESKTOP-N29NEU1;database=ProductinventoryDB;trusted_connection=true;";
+
+        static void Main(string[] args)
+        {
+            using (SqlConnection con = new SqlConnection(conStr))
+            {
+                con.Open();
+
+                while (true)
+                {
+                    Console.WriteLine("1. View Product Inventory");
+                    Console.WriteLine("2. Add New Product");
+                    Console.WriteLine("3. Update Product Quantity");
+                    Console.WriteLine("4. Remove Product");
+                    Console.WriteLine("5. Exit");
+                    Console.Write("Enter your choice: ");
+                    int choice = int.Parse(Console.ReadLine());
+
+                    switch (choice)
+                    {
+                        case 1:
+                            ViewProductInventory(con);
+                            break;
+                        case 2:
+                            AddNewProduct(con);
+                            break;
+                        case 3:
+                            UpdateProductQuantity(con);
+                            break;
+                        case 4:
+                            RemoveProduct(con);
+                            break;
+                        case 5:
+                            return;
+                        default:
+                            Console.WriteLine("Invalid choice. Please enter a valid option.");
+                            break;
+                    }
+                }
+            }
+        }
+        static void ViewProductInventory(SqlConnection con)
+        {
+            using (cmd = new SqlCommand("select * from Products", con))
+            using (reader = cmd.ExecuteReader())
+            {
+
+                Console.WriteLine("ProductID | ProductName | Price | quantity | MfDate | ExpDate");
+                while (reader.Read())
+                {
+                    Console.WriteLine(reader["ProductId"]);
+                    Console.WriteLine(reader["ProductName"]);
+                    Console.WriteLine(reader["Price"]);
+                    Console.WriteLine(reader["quantity"]);
+                    Console.WriteLine(reader["MfDate"]);
+                    Console.WriteLine(reader["ExpDate"]);
+
+
+                }
+            }
+        }
+        static void AddNewProduct(SqlConnection con)
+        {
+
+            try
+            {
+                con = new SqlConnection(conStr); //connection of provider block
+                cmd = new SqlCommand()
+                {
+                    CommandText = "insert into Products(ProductId,ProductName,Price,quantity,MfDate,ExpDate) values(@id,@name,@pri,@qua,@mfD,@exD)",
+                    Connection = con
+                };
+
+                Console.WriteLine("Enter Prodct Id");
+                cmd.Parameters.AddWithValue("@id", int.Parse(Console.ReadLine()));
+                Console.WriteLine("Enter Product Name");
+                cmd.Parameters.AddWithValue("@name", Console.ReadLine());
+                Console.WriteLine("Enter Product Price ");
+                cmd.Parameters.AddWithValue("@pri", decimal.Parse(Console.ReadLine()));
+                Console.WriteLine("Enter Product quantity");
+                cmd.Parameters.AddWithValue("@qua", int.Parse(Console.ReadLine()));
+                Console.WriteLine("Enter Product MF Date");
+                cmd.Parameters.AddWithValue("@mfD", DateTime.Parse(Console.ReadLine()));
+                Console.WriteLine("Enter Product Ex Date");
+                cmd.Parameters.AddWithValue("@exD", DateTime.Parse(Console.ReadLine()));
+
+                con.Open();
+
+                int nor = cmd.ExecuteNonQuery();
+                if (nor >= 1)
+                {
+                    Console.WriteLine("Recore Inserted!!!");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error!!" + ex.Message);
+            }
+            finally
+            {
+
+                Console.ReadKey();
+            }
+        }
+
+
+        static void UpdateProductQuantity(SqlConnection con)
+        {
+            try
+            {
+                int id;
+                Console.WriteLine("Enter Product ID to Update Details");
+                id = int.Parse(Console.ReadLine());
+                con = new SqlConnection(conStr); //connection of provider block
+                cmd = new SqlCommand()
+                {
+                    CommandText = "select * from Products where ProductId=@id",
+                    Connection = con
+                };
+
+                cmd.Parameters.AddWithValue("@id", id);
+                con.Open();
+                reader = cmd.ExecuteReader();
+                if (reader.HasRows)
+                {
+
+                    con.Close();
+                    con.Open();
+                    cmd.CommandText = "update Products set ProductName=@name,Price=@pri,quantity=@qua,MfDate=@mfD,ExpDate=@exD where ProductId=@eid";
+                    Console.WriteLine("Enter New Product Name");
+                    cmd.Parameters.AddWithValue("@name", Console.ReadLine());
+                    Console.WriteLine("Enter New Product Price Name");
+                    cmd.Parameters.AddWithValue("@pri", decimal.Parse(Console.ReadLine()));
+                    Console.WriteLine("Enter Product quantity ");
+                    cmd.Parameters.AddWithValue("@qua", int.Parse(Console.ReadLine()));
+                    Console.WriteLine("Enter  New Product Mf Date");
+                    cmd.Parameters.AddWithValue("@mfD", DateTime.Parse(Console.ReadLine()));
+                    Console.WriteLine("Enter  New Product Ex Date");
+                    cmd.Parameters.AddWithValue("@exD", DateTime.Parse(Console.ReadLine()));
+                    cmd.Parameters.AddWithValue("@eid", id);
+                    cmd.ExecuteNonQuery();
+                    Console.WriteLine("Record Updated");
+
+                }
+                else
+                {
+                    Console.WriteLine($"No such Id {id} exist in our database");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error!!" + ex.Message);
+            }
+            finally
+            {
+
+                /*   Console.ReadKey();*/
+            }
+
+        }
+        static void RemoveProduct(SqlConnection con)
+        {
+
+            try
+            {
+                con = new SqlConnection(conStr);
+                cmd = new SqlCommand()
+                {
+                    CommandText = "delete from Products where ProductId=@id",
+                    Connection = con
+                };
+
+                Console.WriteLine("Enter Product Id");
+                cmd.Parameters.AddWithValue("@id", int.Parse(Console.ReadLine()));
+                con.Open();
+                int nor = cmd.ExecuteNonQuery();
+                if (nor >= 1)
+                {
+                    Console.WriteLine("Recore Deleted!!!");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error!!" + ex.Message);
+            }
+            finally
+            {
+
+                Console.ReadKey();
+            }
+
+
+        }
+    }
+}
+
